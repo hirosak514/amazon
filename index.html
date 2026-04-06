@@ -3,37 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バーコードスキャナー・テスト</title>
+    <title>バーコード最安値スキャナー</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; }
-        #reader { width: 100%; max-width: 500px; margin: auto; }
-        #result { margin-top: 20px; font-weight: bold; color: blue; font-size: 1.2em; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f9f9f9; }
+        #reader { width: 100%; max-width: 500px; margin: 20px auto; border: 2px solid #ccc; border-radius: 8px; overflow: hidden; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 8px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn { display: block; width: 80%; max-width: 300px; margin: 10px auto; padding: 15px; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .amazon { background: #ff9900; }
+        .rakuten { background: #bf0000; }
+        #error-msg { color: red; font-size: 0.8em; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <h2>バーコードをスキャンしてください</h2>
+    <h2>バーコードをスキャン</h2>
     <div id="reader"></div>
-    <div id="result">読み取り結果: まだありません</div>
+    <div id="error-msg"></div>
+    <div id="result">ここに結果が表示されます</div>
 
     <script>
-        function onScanSuccess(decodedText, decodedResult) {
-            // 読み取りに成功した時の処理
-            document.getElementById('result').innerText = "読み取り成功！: " + decodedText;
-            
-            // 実際にはここでAmazonのURLに飛ばしたりします
-            // window.location.href = `https://www.amazon.co.jp/s?k=${decodedText}&tag=your-id-22`;
+        const resultContainer = document.getElementById('result');
+        const errorMsg = document.getElementById('error-msg');
+
+        function onScanSuccess(decodedText) {
+            // 読み取り成功時の処理
+            resultContainer.innerHTML = `
+                <p style="font-size: 1.2em;">JAN: <strong>${decodedText}</strong></p>
+                <a class="btn amazon" href="https://www.amazon.co.jp/s?k=${decodedText}&tag=your-id-22" target="_blank">Amazonで探す</a>
+                <a class="btn rakuten" href="https://search.rakuten.co.jp/search/mall/${decodedText}/" target="_blank">楽天で探す</a>
+            `;
+            // 成功したら一旦止める（連続検知防止）
+            html5QrcodeScanner.clear();
         }
 
         function onScanFailure(error) {
-            // 読み取り失敗（スキャン中）は無視してOK
+            // スキャン中の細かいエラーは無視
         }
 
         let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", { fps: 10, qrbox: {width: 250, height: 150} }
+            "reader", 
+            { 
+                fps: 15, 
+                qrbox: {width: 280, height: 150},
+                rememberLastUsedCamera: true,
+                aspectRatio: 1.0
+            },
+            /* verbose= */ false
         );
+
+        // 実行
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+        // カメラが起動しない場合のエラー捕捉
+        setTimeout(() => {
+            const video = document.querySelector('video');
+            if (!video) {
+                errorMsg.innerText = "カメラが起動していません。ブラウザの設定でカメラ許可を確認してください。";
+            }
+        }, 3000);
     </script>
 </body>
 </html>
