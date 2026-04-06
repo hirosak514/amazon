@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バーコードスキャナー・テスト</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        #reader { width: 100%; max-width: 500px; margin: auto; }
+        #result { margin-top: 20px; font-weight: bold; color: blue; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+    <h2>バーコードをスキャンしてください</h2>
+    <div id="reader"></div>
+    <div id="result">読み取り結果: まだありません</div>
+
+    <script>
+        function onScanSuccess(decodedText, decodedResult) {
+            // 読み取りに成功した時の処理
+            document.getElementById('result').innerText = "読み取り成功！: " + decodedText;
+            
+            // 実際にはここでAmazonのURLに飛ばしたりします
+            // window.location.href = `https://www.amazon.co.jp/s?k=${decodedText}&tag=your-id-22`;
+        }
+
+        function onScanFailure(error) {
+            // 読み取り失敗（スキャン中）は無視してOK
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", { fps: 10, qrbox: {width: 250, height: 150} }
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    </script>
+</body>
+</html>
